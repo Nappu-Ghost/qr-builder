@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Colors - Modern Dark/Premium Palette */
+  --color-bg-base: 220 30% 7%;      /* Very dark blue-grey */
+  --color-bg-surface: 220 25% 12%;  /* Slightly lighter for cards */
+  --color-primary: 250 100% 70%;    /* Vibrant purple/indigo */
+  --color-primary-glow: 250 100% 70% 0.3;
+  --color-text-main: 220 10% 95%;   /* Off-white */
+  --color-text-muted: 220 10% 70%;
+  --color-border: 220 20% 20%;
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(30, 35, 45, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Spacing & Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: hsl(var(--color-text-main));
+  background-color: hsl(var(--color-bg-base));
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at top right, #2a2d3e 0%, hsl(var(--color-bg-base)) 40%);
+}
+
+#root {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  font-weight: 700;
+  color: hsl(var(--color-text-main));
+}
+
+/* Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-lg);
+}
+
+.btn-primary {
+  background: hsl(var(--color-primary));
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px var(--color-primary-glow);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
