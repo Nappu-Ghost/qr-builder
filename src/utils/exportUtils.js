@@ -1,7 +1,7 @@
-import QRCode from 'qrcode';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { generateVCard } from './vcard';
+import QRCodeStyling from 'qr-code-styling';
 
 /**
  * Downloads a single VCard file.
@@ -12,92 +12,80 @@ export const downloadVCard = (vcardString, filename) => {
 };
 
 /**
- * Downloads the current QR code as PNG or SVG.
- * Note: For SVG, we might need to serialize the SVG DOM element if we want exact current state,
- * but reusing the generator is cleaner for logic if we match settings.
- * However, qrcode.react renders to DOM.
- * For "Downloading" current view, serializing DOM is best for SVG.
- * For PNG, we can use QRCode.toDataURL with same settings.
+ * Helper to generate a Blob from QRCodeStyling
  */
-export const downloadQRImage = async (text, format = 'png', filename, options = {}) => {
-    const { fgColor = '#000000', bgColor = '#ffffff', margin = 1 } = options;
-
-    if (format === 'png') {
-        try {
-            const dataUrl = await QRCode.toDataURL(text, {
-                color: {
-                    dark: fgColor,
-                    light: bgColor // Transparency: if bgColor is null/undefined? QRCode lib handles RGBA?
-                    // If user wants transparent, we should pass alpha. 
-                    // But input is usually hex. 
-                },
-                margin,
-                width: 1000 // High res
-            });
-            saveAs(dataUrl, `${filename}.png`);
-        } catch (err) {
-            console.error(err);
-        }
-    } else if (format === 'svg') {
-        // For SVG, we can generate string using QRCode lib
-        try {
-            const svgString = await QRCode.toString(text, {
-                type: 'svg',
-                color: { dark: fgColor, light: bgColor },
-                margin
-            });
-            const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-            saveAs(blob, `${filename}.svg`);
-        } catch (err) {
-            console.error(err);
-        }
-    }
+const getQRBlob = async (data, options, format) => {
+    const qr = new QRCodeStyling({
+        width: 1000,
+        height: 1000,
+        data: data,
+        margin: 5,
+        ...options
+    });
+    return await qr.getRawData(format);
 };
 
 /**
- * Generates a ZIP file containing QR codes (PNG/SVG) and VCards for the batch.
+ * Processes batch export using QRCodeStyling logic.
+ * Handles both Single and Multiple contacts.
+ * Logic:
+ *  - If 1 contact AND 1 format -> Download directly.
+ *  - Else -> Zip.
  */
-export const processBatchExport = async (dataList, exportOptions = {}) => {
+export const processBatchExportStyled = async (dataList, exportOptions = {}) => {
     const {
         includePng = true,
         includeSvg = false,
         includeVCard = false,
-        qrSettings = {}
+        qrSettings = {} // This now contains { dotsOptions: {...}, ... }
     } = exportOptions;
 
     const zip = new JSZip();
     const folder = zip.folder("vcard-qr-codes");
+    let fileCount = 0;
+
+    // Pre-calculate if we need zip
+    const formatsCount = (includePng ? 1 : 0) + (includeSvg ? 1 : 0) + (includeVCard ? 1 : 0);
+    const isSingleFileDownload = dataList.length === 1 && formatsCount === 1;
 
     for (let i = 0; i < dataList.length; i++) {
         const contact = dataList[i];
         const vcard = generateVCard(contact);
-        // Filename strategy: Firstname_Lastname or Organization or Index
-        const safeName = `${contact.firstName || ''}_${contact.lastName || ''}_${i + 1}`.replace(/[^a-z0-9_-]/gi, '_');
+        const safeName = `${contact.firstName || 'contact'}_${contact.lastName || 'qrcode'}_${i + 1}`.replace(/[^a-z0-9_-]/gi, '_');
 
         if (includeVCard) {
-            folder.file(`${safeName}.vcf`, vcard);
+            if (isSingleFileDownload) {
+                downloadVCard(vcard, safeName);
+            } else {
+                folder.file(`${safeName}.vcf`, vcard);
+            }
+            fileCount++;
         }
 
         if (includePng) {
-            const dataUrl = await QRCode.toDataURL(vcard, {
-                color: { dark: qrSettings.fgColor, light: qrSettings.bgColor },
-                margin: 1,
-                width: 1000
-            });
-            // Remove data:image/png;base64, header
-            const base64 = dataUrl.split(',')[1];
-            folder.file(`${safeName}.png`, base64, { base64: true });
+            const blob = await getQRBlob(vcard, qrSettings, 'png');
+            if (isSingleFileDownload) {
+                saveAs(blob, `${safeName}.png`);
+            } else {
+                folder.file(`${safeName}.png`, blob);
+            }
+            fileCount++;
         }
 
         if (includeSvg) {
-            const svgString = await QRCode.toString(vcard, {
-                type: 'svg',
-                color: { dark: qrSettings.fgColor, light: qrSettings.bgColor }
-            });
-            folder.file(`${safeName}.svg`, svgString);
+            // QRCodeStyling returns blob for SVG too
+            const blob = await getQRBlob(vcard, qrSettings, 'svg');
+            if (isSingleFileDownload) {
+                saveAs(blob, `${safeName}.svg`);
+            } else {
+                folder.file(`${safeName}.svg`, blob);
+            }
+            fileCount++;
         }
     }
 
-    const zipContent = await zip.generateAsync({ type: "blob" });
-    saveAs(zipContent, "qr_batch_export.zip");
+    if (!isSingleFileDownload && fileCount > 0) {
+        const zipContent = await zip.generateAsync({ type: "blob" });
+        saveAs(zipContent, `qr_batch_export_${Date.now()}.zip`);
+    }
 };

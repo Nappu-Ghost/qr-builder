@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { Download, FileCode, FileImage, FileText } from 'lucide-react';
 
 const ExportPanel = ({ onExport, isBatch }) => {
     const [options, setOptions] = useState({
         includePng: true,
         includeSvg: false,
-        includeVCard: false
+        includeVCard: false,
+        imageFormat: 'png' // Default to png for UI, but exportUtils handles both
     });
 
     const handleChange = (e) => {
@@ -16,56 +18,59 @@ const ExportPanel = ({ onExport, isBatch }) => {
         onExport(options);
     };
 
-    // If single, we might want buttons for each?
-    // User scenario: "export ticking options" ... "if all 3 ticked it should create a zip file"
-    // Actually, for individual, typically you download one by one. But user asked for "export ticking options" 
-    // and "create zip file which I can name before downloading".
-    // This implies even for single, if multiple are selected, zip might be better?
-    // Or maybe for single, "Download PNG", "Download SVG" buttons are enough.
-    // But the prompt says "4. after I finish customizing the next step would be export ticking options".
-    // I will follow the prompt mechanism for both Single and Batch to be consistent.
-
     return (
         <div style={{ marginTop: '2rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
-            <h4 style={{ marginBottom: '1rem' }}>Export Options</h4>
+            <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Download size={20} /> Export Options
+            </h4>
 
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <label className="checkbox-card">
                     <input
                         type="checkbox"
                         name="includePng"
                         checked={options.includePng}
                         onChange={handleChange}
                     />
-                    PNG Image
+                    <div className="content">
+                        <FileImage size={18} />
+                        <span>PNG</span>
+                    </div>
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <label className="checkbox-card">
                     <input
                         type="checkbox"
                         name="includeSvg"
                         checked={options.includeSvg}
                         onChange={handleChange}
                     />
-                    SVG Vector
+                    <div className="content">
+                        <FileCode size={18} />
+                        <span>SVG</span>
+                    </div>
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <label className="checkbox-card">
                     <input
                         type="checkbox"
                         name="includeVCard"
                         checked={options.includeVCard}
                         onChange={handleChange}
                     />
-                    VCard File (.vcf)
+                    <div className="content">
+                        <FileText size={18} />
+                        <span>VCard</span>
+                    </div>
                 </label>
             </div>
 
             <button
                 className="btn-primary"
-                style={{ width: '100%' }}
+                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
                 onClick={handleExportClick}
             >
+                <Download size={20} />
                 {isBatch ? 'Download Batch ZIP' : 'Download Selected Formats'}
             </button>
         </div>

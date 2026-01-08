@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import Papa from 'papaparse';
+import { Upload, FileSpreadsheet } from 'lucide-react';
 
 const BatchUpload = ({ onDataLoaded }) => {
     const fileInputRef = useRef(null);
@@ -37,12 +38,14 @@ const BatchUpload = ({ onDataLoaded }) => {
     };
 
     return (
-        <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-            <h2 style={{ marginBottom: '1rem' }}>Batch QR Generation</h2>
+        <div className="glass-panel hover-scale" style={{ padding: '3rem', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={() => fileInputRef.current.click()}>
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
+                <FileSpreadsheet size={48} color="hsl(var(--color-primary))" />
+            </div>
+
+            <h2 style={{ marginBottom: '0.5rem' }}>Batch Processing</h2>
             <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                Upload a CSV file to generate multiple QR codes at once.
-                <br />
-                <small>Supported headers: Firstname, Lastname, Organization, Position (Work), Phone... etc.</small>
+                Upload a CSV file to generate multiple QR codes automatically.
             </p>
 
             <input
@@ -55,10 +58,14 @@ const BatchUpload = ({ onDataLoaded }) => {
 
             <button
                 className="btn-primary"
-                onClick={() => fileInputRef.current.click()}
+                style={{ pointerEvents: 'none' }} // Button visual only, container clicks
             >
-                Upload CSV List
+                <Upload size={18} style={{ marginRight: '8px' }} />
+                Select CSV File
             </button>
+            <small style={{ display: 'block', marginTop: '1rem', color: 'var(--color-text-muted)', opacity: 0.7 }}>
+                Headers: Firstname, Lastname, Organization...
+            </small>
         </div>
     );
 };

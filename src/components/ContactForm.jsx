@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { User, Building2, Phone, Mail, Globe, MapPin } from 'lucide-react';
 
 const ContactForm = ({ initialData, onChange }) => {
     const [formData, setFormData] = useState({
@@ -18,98 +19,104 @@ const ContactForm = ({ initialData, onChange }) => {
     });
 
     useEffect(() => {
-        onChange(formData);
-    }, [formData, onChange]);
+        // Determine if initialData effectively changed (e.g. strict batch switch)
+        if (initialData) {
+            setFormData(prev => ({ ...prev, ...initialData }));
+        }
+    }, [initialData]);
 
+    // Sync up to parent only when formData strictly changes by user input
+    // (Handling derived state can be tricky, but here we just need to push up changes)
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        // Update local state first
+        const updated = { ...formData, [name]: value };
+        setFormData(updated);
+        // Propagate up
+        onChange(updated);
+    };
+
+    const inputGroupStyle = {
+        position: 'relative',
+        marginBottom: '1rem'
+    };
+
+    const iconStyle = {
+        position: 'absolute',
+        left: '12px',
+        top: '38px', // aligned with input
+        color: 'var(--color-text-muted)',
+        pointerEvents: 'none'
     };
 
     const inputStyle = {
         width: '100%',
-        padding: '0.75rem',
+        padding: '0.75rem 0.75rem 0.75rem 2.8rem', // Left padding for icon
         borderRadius: 'var(--radius-sm)',
         border: '1px solid var(--color-border)',
         background: 'var(--color-bg-base)',
         color: 'var(--color-text-main)',
-        marginBottom: '1rem',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        transition: 'border-color 0.2s',
+        fontSize: '0.95rem'
     };
 
     const labelStyle = {
         display: 'block',
         marginBottom: '0.5rem',
-        fontSize: '0.9rem',
-        color: 'var(--color-text-muted)'
+        fontSize: '0.85rem',
+        fontWeight: '500',
+        color: 'var(--color-text-muted)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
     };
+
+    // Helper for input field with icon
+    const Field = ({ label, name, icon: Icon, placeholder, width = '100%' }) => (
+        <div style={inputGroupStyle}>
+            <label style={labelStyle}>{label}</label>
+            {Icon && <Icon size={16} style={iconStyle} />}
+            <input
+                name={name}
+                style={inputStyle}
+                value={formData[name] || ''}
+                onChange={handleChange}
+                placeholder={placeholder}
+            />
+        </div>
+    );
 
     return (
         <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h3 style={{ marginBottom: '1.5rem' }}>Contact Details</h3>
+            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <User size={20} className="text-primary" /> Contact Details
+            </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                    <label style={labelStyle}>First Name</label>
-                    <input name="firstName" style={inputStyle} value={formData.firstName} onChange={handleChange} placeholder="John" />
-                </div>
-                <div>
-                    <label style={labelStyle}>Last Name</label>
-                    <input name="lastName" style={inputStyle} value={formData.lastName} onChange={handleChange} placeholder="Doe" />
-                </div>
+                <Field label="First Name" name="firstName" icon={User} placeholder="John" />
+                <Field label="Last Name" name="lastName" icon={User} placeholder="Doe" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                    <label style={labelStyle}>Organization</label>
-                    <input name="organization" style={inputStyle} value={formData.organization} onChange={handleChange} placeholder="Company Ltd" />
-                </div>
-                <div>
-                    <label style={labelStyle}>Start Position / Job Title</label>
-                    <input name="position" style={inputStyle} value={formData.position} onChange={handleChange} placeholder="Director" />
-                </div>
+                <Field label="Organization" name="organization" icon={Building2} placeholder="Company Ltd" />
+                <Field label="Job Title" name="position" icon={Building2} placeholder="Director" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                    <label style={labelStyle}>Work Phone</label>
-                    <input name="phoneWork" style={inputStyle} value={formData.phoneWork} onChange={handleChange} placeholder="+1 234..." />
-                </div>
-                <div>
-                    <label style={labelStyle}>Mobile Phone</label>
-                    <input name="phoneMobile" style={inputStyle} value={formData.phoneMobile} onChange={handleChange} placeholder="+1 987..." />
-                </div>
+                <Field label="Work Phone" name="phoneWork" icon={Phone} placeholder="+1 234..." />
+                <Field label="Mobile Phone" name="phoneMobile" icon={Phone} placeholder="+1 987..." />
             </div>
 
-            <div>
-                <label style={labelStyle}>Email</label>
-                <input name="email" type="email" style={inputStyle} value={formData.email} onChange={handleChange} placeholder="john@example.com" />
-            </div>
-
-            <div>
-                <label style={labelStyle}>Website</label>
-                <input name="website" style={inputStyle} value={formData.website} onChange={handleChange} placeholder="https://..." />
-            </div>
+            <Field label="Email" name="email" icon={Mail} placeholder="john@example.com" />
+            <Field label="Website" name="website" icon={Globe} placeholder="https://..." />
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-                <div>
-                    <label style={labelStyle}>Street</label>
-                    <input name="street" style={inputStyle} value={formData.street} onChange={handleChange} placeholder="123 Main St" />
-                </div>
-                <div>
-                    <label style={labelStyle}>City</label>
-                    <input name="city" style={inputStyle} value={formData.city} onChange={handleChange} placeholder="New York" />
-                </div>
+                <Field label="Street" name="street" icon={MapPin} placeholder="123 Main St" />
+                <Field label="City" name="city" icon={MapPin} placeholder="New York" />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                    <label style={labelStyle}>Zip Code</label>
-                    <input name="zip" style={inputStyle} value={formData.zip} onChange={handleChange} placeholder="10001" />
-                </div>
-                <div>
-                    <label style={labelStyle}>Country</label>
-                    <input name="country" style={inputStyle} value={formData.country} onChange={handleChange} placeholder="USA" />
-                </div>
+                <Field label="Zip Code" name="zip" icon={MapPin} placeholder="10001" />
+                <Field label="Country" name="country" icon={MapPin} placeholder="USA" />
             </div>
 
         </div>

@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import BatchUpload from './components/BatchUpload'
 import ContactForm from './components/ContactForm'
-import QRDisplay from './components/QRDisplay'
+import QRCodeStyled from './components/QRCodeStyled'
 import ExportPanel from './components/ExportPanel'
 import { generateVCard } from './utils/vcard'
+import { ArrowLeft, User, QrCode, Sparkles, Shapes } from 'lucide-react'
 
 function App() {
   const [mode, setMode] = useState('landing') // landing, individual, batch-review
@@ -14,11 +15,37 @@ function App() {
   const [qrSettings, setQrSettings] = useState({
     fgColor: '#000000',
     bgColor: '#ffffff',
-    level: 'M'
+    dotsType: 'square', // square, dots, rounded, extra-rounded, classy, classy-rounded
+    cornerSquareType: 'square', // dot, square, extra-rounded
+    cornerDotType: 'square' // dot, square
   })
+
+  // Options for dropdowns
+  const dotsOptions = ['square', 'dots', 'rounded', 'extra-rounded', 'classy', 'classy-rounded'];
+  const cornerSquareOptions = ['square', 'dot', 'extra-rounded'];
+  const cornerDotOptions = ['square', 'dot'];
 
   const currentContact = qrData[selectedIndex] || {}
   const currentVCard = generateVCard(currentContact)
+
+  // Memoized style options for the QR component
+  const styleOptions = {
+    dotsOptions: {
+      type: qrSettings.dotsType,
+      color: qrSettings.fgColor
+    },
+    backgroundOptions: {
+      color: qrSettings.bgColor,
+    },
+    cornersSquareOptions: {
+      type: qrSettings.cornerSquareType,
+      color: qrSettings.fgColor
+    },
+    cornersDotOptions: {
+      type: qrSettings.cornerDotType,
+      color: qrSettings.fgColor
+    }
+  };
 
   const handleBatchLoaded = (data) => {
     setQrData(data)
@@ -27,7 +54,7 @@ function App() {
   }
 
   const startIndividual = () => {
-    setQrData([{}]) // Start with one empty contact
+    setQrData([{}])
     setSelectedIndex(0)
     setMode('individual')
   }
@@ -45,32 +72,60 @@ function App() {
 
   return (
     <div className="app-container">
-      <header style={{ marginBottom: '3rem', textAlign: 'center' }}>
-        <h1 style={{ cursor: 'pointer', fontSize: '3rem', background: 'linear-gradient(to right, #a78bfa, #2dd4bf)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }} onClick={() => setMode('landing')}>
-          QR Builder
+      <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
+        <h1
+          onClick={() => setMode('landing')}
+          style={{
+            cursor: 'pointer',
+            fontSize: '3.5rem',
+            fontWeight: '800',
+            background: 'linear-gradient(to right, #a78bfa, #2dd4bf)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '0.5rem'
+          }}
+        >
+          <QrCode size={48} color="#a78bfa" /> QR Builder
         </h1>
-        <p style={{ color: 'hsl(var(--color-text-muted))' }}>Premium VCard QR Generator</p>
+        <p style={{ color: 'hsl(var(--color-text-muted))', fontSize: '1.1rem' }}>Premium VCard QR Generator</p>
       </header>
 
       {mode === 'landing' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-          <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', cursor: 'pointer' }} onClick={startIndividual}>
-            <h2>Individual</h2>
-            <p>Create a single custom QR Code</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '900px', margin: '0 auto' }}>
+
+          <div
+            className="glass-panel hover-scale"
+            style={{ padding: '3rem', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            onClick={startIndividual}
+          >
+            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
+              <User size={48} color="hsl(var(--color-primary))" />
+            </div>
+            <h2>Individual Mode</h2>
+            <p style={{ color: 'var(--color-text-muted)' }}>Create a single custom QR Code manually.</p>
           </div>
+
           <BatchUpload onDataLoaded={handleBatchLoaded} />
         </div>
       )}
 
       {(mode === 'individual' || mode === 'batch-review') && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: '2rem' }}>
+        <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: '2rem' }}>
 
           {/* Left Column: Input / List */}
           <div>
             <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button className="btn-primary" style={{ background: 'transparent', border: '1px solid var(--color-border)' }} onClick={() => setMode('landing')}>Back</button>
+              <button
+                className="btn-ghost"
+                onClick={() => setMode('landing')}
+              >
+                <ArrowLeft size={18} /> Back to Home
+              </button>
               {mode === 'batch-review' && (
-                <span>Editing {selectedIndex + 1} of {qrData.length}</span>
+                <span className="badge">Editing {selectedIndex + 1} / {qrData.length}</span>
               )}
             </div>
 
@@ -82,14 +137,8 @@ function App() {
                   <button
                     key={idx}
                     onClick={() => setSelectedIndex(idx)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: 'var(--radius-sm)',
-                      background: idx === selectedIndex ? 'var(--color-primary)' : 'var(--color-bg-surface)',
-                      color: idx === selectedIndex ? 'white' : 'var(--color-text-muted)',
-                      border: '1px solid var(--color-border)',
-                      minWidth: '40px'
-                    }}
+                    className={`pagination-dot ${idx === selectedIndex ? 'active' : ''}`}
+                    title={`Contact ${idx + 1}`}
                   >
                     {idx + 1}
                   </button>
@@ -100,25 +149,73 @@ function App() {
 
           {/* Right Column: Preview & Customization */}
           <div>
-            <div className="glass-panel" style={{ padding: '2rem', position: 'sticky', top: '2rem' }}>
-              <h3 style={{ marginBottom: '1.5rem' }}>Visual Customization</h3>
+            <div className="glass-panel sticky-panel" style={{ padding: '2rem' }}>
+              <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Sparkles size={20} className="text-secondary" /> Visual Customization
+              </h3>
 
               {/* Color Controls */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem' }}>Foreground Color</label>
-                <input type="color" value={qrSettings.fgColor} onChange={e => setQrSettings(s => ({ ...s, fgColor: e.target.value }))} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Foreground</label>
+                  <div className="color-picker-wrapper">
+                    <input type="color" value={qrSettings.fgColor} onChange={e => setQrSettings(s => ({ ...s, fgColor: e.target.value }))} />
+                    <span style={{ color: qrSettings.fgColor }}>{qrSettings.fgColor}</span>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Background</label>
+                  <div className="color-picker-wrapper">
+                    <input type="color" value={qrSettings.bgColor} onChange={e => setQrSettings(s => ({ ...s, bgColor: e.target.value }))} />
+                    <span style={{ color: qrSettings.bgColor }}>{qrSettings.bgColor}</span>
+                  </div>
+                </div>
               </div>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem' }}>Background Color</label>
-                <input type="color" value={qrSettings.bgColor} onChange={e => setQrSettings(s => ({ ...s, bgColor: e.target.value }))} />
+
+              <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', color: 'var(--color-text-muted)' }}>
+                <Shapes size={16} /> Shape Style
+              </h4>
+
+              {/* Shape Controls */}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Dots Pattern</label>
+                <select
+                  value={qrSettings.dotsType}
+                  onChange={e => setQrSettings(s => ({ ...s, dotsType: e.target.value }))}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'white' }}
+                >
+                  {dotsOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Corner Square</label>
+                  <select
+                    value={qrSettings.cornerSquareType}
+                    onChange={e => setQrSettings(s => ({ ...s, cornerSquareType: e.target.value }))}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'white' }}
+                  >
+                    {cornerSquareOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Corner Dot</label>
+                  <select
+                    value={qrSettings.cornerDotType}
+                    onChange={e => setQrSettings(s => ({ ...s, cornerDotType: e.target.value }))}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', background: 'var(--color-bg-surface)', color: 'white' }}
+                  >
+                    {cornerDotOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
               </div>
 
               {/* Preview */}
-              <div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
-                <QRDisplay
+              <div className="qr-preview-container">
+                <QRCodeStyled
                   value={currentVCard}
-                  fgColor={qrSettings.fgColor}
-                  bgColor={qrSettings.bgColor}
+                  styleOptions={styleOptions}
                 />
               </div>
 
@@ -126,22 +223,11 @@ function App() {
                 isBatch={mode === 'batch-review'}
                 onExport={(options) => {
                   const dataToExport = mode === 'batch-review' ? qrData : [currentContact];
-                  const exportOpts = { ...options, qrSettings };
+                  const exportOpts = { ...options, qrSettings: styleOptions };
 
-                  // Logic: If batch OR multiple formats -> Zip. Else -> Single file.
-                  const formatsCount = (options.includePng ? 1 : 0) + (options.includeSvg ? 1 : 0) + (options.includeVCard ? 1 : 0);
-
-                  if (dataToExport.length > 1 || formatsCount > 1) {
-                    import('./utils/exportUtils').then(mod => mod.processBatchExport(dataToExport, exportOpts));
-                  } else {
-                    // Single file export
-                    import('./utils/exportUtils').then(mod => {
-                      const filename = `${currentContact.firstName || 'contact'}_${currentContact.lastName || 'qrcode'}`;
-                      if (options.includeVCard) mod.downloadVCard(generateVCard(currentContact), filename);
-                      if (options.includePng) mod.downloadQRImage(generateVCard(currentContact), 'png', filename, qrSettings);
-                      if (options.includeSvg) mod.downloadQRImage(generateVCard(currentContact), 'svg', filename, qrSettings);
-                    });
-                  }
+                  import('./utils/exportUtils').then(mod => {
+                    mod.processBatchExportStyled(dataToExport, exportOpts)
+                  });
                 }}
               />
 

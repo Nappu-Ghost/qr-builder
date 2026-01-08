@@ -2,14 +2,18 @@
 
 :root {
   /* Colors - Modern Dark/Premium Palette */
-  --color-bg-base: 220 30% 7%;      /* Very dark blue-grey */
-  --color-bg-surface: 220 25% 12%;  /* Slightly lighter for cards */
-  --color-primary: 250 100% 70%;    /* Vibrant purple/indigo */
+  --color-bg-base: 220 30% 7%;
+  /* Very dark blue-grey */
+  --color-bg-surface: 220 25% 12%;
+  /* Slightly lighter for cards */
+  --color-primary: 250 100% 70%;
+  /* Vibrant purple/indigo */
   --color-primary-glow: 250 100% 70% 0.3;
-  --color-text-main: 220 10% 95%;   /* Off-white */
+  --color-text-main: 220 10% 95%;
+  /* Off-white */
   --color-text-muted: 220 10% 70%;
   --color-border: 220 20% 20%;
-  
+
   /* Glassmorphism */
   --glass-bg: rgba(30, 35, 45, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
@@ -19,7 +23,7 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
-  
+
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -51,13 +55,15 @@ button {
   font-family: inherit;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   margin: 0;
   font-weight: 700;
   color: hsl(var(--color-text-main));
 }
 
-/* Utilities */
+/* Glass Panel */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
@@ -65,8 +71,16 @@ h1, h2, h3 {
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius-lg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.hover-scale:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Buttons */
 .btn-primary {
   background: hsl(var(--color-primary));
   color: white;
@@ -80,4 +94,149 @@ h1, h2, h3 {
 .btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s;
+}
+
+.btn-ghost:hover {
+  color: var(--color-text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Inputs */
+input:focus {
+  outline: none;
+  border-color: hsl(var(--color-primary)) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+/* Checkbox Cards */
+.checkbox-card {
+  position: relative;
+  cursor: pointer;
+  flex: 1;
+}
+
+.checkbox-card input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkbox-card .content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-text-muted);
+  transition: all 0.2s;
+}
+
+.checkbox-card input:checked~.content {
+  background: rgba(167, 139, 250, 0.15);
+  /* Primary color low opacity */
+  border-color: hsl(var(--color-primary));
+  color: hsl(var(--color-text-main));
+}
+
+/* Color Picker */
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+input[type="color"] {
+  border: none;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+/* Preview Container */
+.qr-preview-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+  padding: 2rem;
+  background: white;
+  /* Always white bg for viewing contrast if transparent */
+  border-radius: var(--radius-md);
+  /* Checkerboard for transparency */
+  background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* Pagination Dots */
+.pagination-dot {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  min-width: 40px;
+  transition: all 0.2s;
+}
+
+.pagination-dot.active {
+  background: hsl(var(--color-primary));
+  color: white;
+  border-color: hsl(var(--color-primary));
+}
+
+/* Simple Animations */
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sticky-panel {
+  position: sticky;
+  top: 2rem;
+}
+
+.text-primary {
+  color: hsl(var(--color-primary));
+}
+
+.text-secondary {
+  color: #2dd4bf;
+}
+
+.badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
 }
