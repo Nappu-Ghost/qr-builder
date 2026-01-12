@@ -1,2 +1,2 @@
-Firstname,Lastname,Organization,Position (Work),Phone (Work),Phone (Mobile),Email,Street,Zipcode,City
-John,Doe,Company One,Director,9603022211,9607654321,john.doe@gnail.com,"Velaanaage Building, 5th Floor Ameer Avnue Magu",20096,Malé
+Firstname,Lastname,Organization,Position (Work),Phone (Work),Phone (Mobile),Email,Street,Zipcode,City,Country
+John,Doe,Company One,Director,9603022211,9607654321,john.doe@gnail.com,"Velaanaage Building, 5th Floor Ameer Avnue Magu",20096,Malé,Maldives
