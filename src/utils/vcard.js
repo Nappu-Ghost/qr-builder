@@ -1,53 +1,31 @@
-/**
- * Generates a VCard 3.0 string from a contact object.
- * @param {Object} contact
- * @param {string} contact.firstName
- * @param {string} contact.lastName
- * @param {string} contact.organization
- * @param {string} contact.position
- * @param {string} contact.phoneWork
- * @param {string} contact.phoneMobile
- * @param {string} contact.email
- * @param {string} contact.website
- * @param {string} contact.street
- * @param {string} contact.city
- * @param {string} contact.zip
- * @param {string} contact.country
- * @returns {string} VCard string
- */
-export const generateVCard = (contact) => {
-    const {
-        firstName = '',
-        lastName = '',
-        organization = '',
-        position = '',
-        phoneWork = '',
-        phoneMobile = '',
-        email = '',
-        website = '',
-        street = '',
-        city = '',
-        zip = '',
-        country = ''
-    } = contact;
+export function generateVCard(contact = {}) {
+  const first = contact['Firstname'] || ''
+  const last = contact['Lastname'] || ''
+  const org = contact['Organization'] || ''
+  const title = contact['Position (Work)'] || ''
+  const telWork = contact['Phone (Work)'] || ''
+  const telMobile = contact['Phone (Mobile)'] || ''
+  const email = contact['Email'] || ''
+  const street = contact['Street'] || ''
+  const zipcode = contact['Zipcode'] || ''
+  const city = contact['City'] || ''
 
-    // Basic VCard 3.0 structure
-    const vcard = [
-        'BEGIN:VCARD',
-        'VERSION:3.0',
-        `N:${lastName};${firstName};;;`,
-        `FN:${firstName} ${lastName}`,
-        organization ? `ORG:${organization}` : '',
-        position ? `TITLE:${position}` : '',
-        phoneWork ? `TEL;TYPE=WORK,VOICE:${phoneWork}` : '',
-        phoneMobile ? `TEL;TYPE=CELL,VOICE:${phoneMobile}` : '',
-        email ? `EMAIL;TYPE=PREF,INTERNET:${email}` : '',
-        website ? `URL:${website}` : '',
-        (street || city || zip || country)
-            ? `ADR;TYPE=WORK:;;${street};${city};;${zip};${country}`
-            : '',
-        'END:VCARD'
-    ].filter(Boolean).join('\n');
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `N:${last};${first};;;`,
+    `FN:${first} ${last}`.trim(),
+  ]
 
-    return vcard;
-};
+  if (org) lines.push(`ORG:${org}`)
+  if (title) lines.push(`TITLE:${title}`)
+  if (telWork) lines.push(`TEL;TYPE=WORK,VOICE:${telWork}`)
+  if (telMobile) lines.push(`TEL;TYPE=CELL,VOICE:${telMobile}`)
+  if (email) lines.push(`EMAIL;TYPE=INTERNET:${email}`)
+  if (street || city || zipcode) {
+    lines.push(`ADR;TYPE=WORK:;;${street};${city};;${zipcode};`)
+  }
+
+  lines.push('END:VCARD')
+  return lines.join('\n')
+}

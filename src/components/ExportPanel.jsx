@@ -1,80 +1,41 @@
-import React, { useState } from 'react';
-import { Download, FileCode, FileImage, FileText } from 'lucide-react';
+import React, { useState } from 'react'
 
-const ExportPanel = ({ onExport, isBatch }) => {
-    const [options, setOptions] = useState({
-        includePng: true,
-        includeSvg: false,
-        includeVCard: false,
-        imageFormat: 'png' // Default to png for UI, but exportUtils handles both
-    });
+export default function ExportPanel({ isBatch, onExport, exporting, progress, errors }) {
+  const [size, setSize] = useState(1024)
+  const [format, setFormat] = useState('png')
 
-    const handleChange = (e) => {
-        const { name, checked } = e.target;
-        setOptions(prev => ({ ...prev, [name]: checked }));
-    };
+  return (
+    <div style={{ marginTop: '1rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <label style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Size</label>
+        <input type="number" value={size} onChange={e => setSize(Number(e.target.value) || 1024)} style={{ width: 100 }} />
+        <label style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Format</label>
+        <select value={format} onChange={e => setFormat(e.target.value)}>
+          <option value="png">PNG</option>
+          <option value="svg">SVG</option>
+        </select>
+      </div>
 
-    const handleExportClick = () => {
-        onExport(options);
-    };
+      <button disabled={exporting} className="btn-primary" onClick={() => onExport && onExport({ format, size, isBatch })}>
+        {exporting ? `Exporting (${progress?.index || 0}/${progress?.total || 0})` : `Export ${isBatch ? 'Batch' : 'Single'}`}
+      </button>
 
-    return (
-        <div style={{ marginTop: '2rem', borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
-            <h4 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Download size={20} /> Export Options
-            </h4>
-
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                <label className="checkbox-card">
-                    <input
-                        type="checkbox"
-                        name="includePng"
-                        checked={options.includePng}
-                        onChange={handleChange}
-                    />
-                    <div className="content">
-                        <FileImage size={18} />
-                        <span>PNG</span>
-                    </div>
-                </label>
-
-                <label className="checkbox-card">
-                    <input
-                        type="checkbox"
-                        name="includeSvg"
-                        checked={options.includeSvg}
-                        onChange={handleChange}
-                    />
-                    <div className="content">
-                        <FileCode size={18} />
-                        <span>SVG</span>
-                    </div>
-                </label>
-
-                <label className="checkbox-card">
-                    <input
-                        type="checkbox"
-                        name="includeVCard"
-                        checked={options.includeVCard}
-                        onChange={handleChange}
-                    />
-                    <div className="content">
-                        <FileText size={18} />
-                        <span>VCard</span>
-                    </div>
-                </label>
+      {exporting && (
+        <div style={{ marginTop: '0.5rem' }}>
+          <div style={{ height: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 6, overflow: 'hidden' }}>
+            <div style={{ width: `${Math.round(((progress?.index || 0) / (progress?.total || 1)) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#a78bfa,#2dd4bf)' }} />
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 6 }}>Processed {progress?.index || 0} / {progress?.total || 0}</div>
+          {errors && errors.length > 0 && (
+            <div style={{ marginTop: 6, color: '#fca5a5', fontSize: 12 }}>
+              <strong>Errors:</strong>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 16 }}>
+                {errors.map((e, idx) => <li key={idx}>{`Row ${e.index}: ${e.error}`}</li>)}
+              </ul>
             </div>
-
-            <button
-                className="btn-primary"
-                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
-                onClick={handleExportClick}
-            >
-                <Download size={20} />
-                {isBatch ? 'Download Batch ZIP' : 'Download Selected Formats'}
-            </button>
+          )}
         </div>
-    );
-};
-
-export default ExportPanel;
+      )}
+    </div>
+  )
+}

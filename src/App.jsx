@@ -53,6 +53,8 @@ function App() {
     setMode('batch-review')
   }
 
+  const [exportProgress, setExportProgress] = useState(null)
+
   const startIndividual = () => {
     setQrData([{}])
     setSelectedIndex(0)
@@ -221,13 +223,30 @@ function App() {
 
               <ExportPanel
                 isBatch={mode === 'batch-review'}
-                onExport={(options) => {
-                  const dataToExport = mode === 'batch-review' ? qrData : [currentContact];
-                  const exportOpts = { ...options, qrSettings: styleOptions };
+                exporting={!!exportProgress && !exportProgress.done}
+                progress={exportProgress}
+                errors={exportProgress?.errors || []}
+                onExport={async (options) => {
+                  const raw = mode === 'batch-review' ? qrData : [currentContact];
+                  const dataToExport = raw.map(c => ({ ...(c || {}), vcard: generateVCard(c || {}) }))
+                  setExportProgress({ index: 0, total: dataToExport.length, errors: [] })
 
-                  import('./utils/exportUtils').then(mod => {
-                    mod.processBatchExportStyled(dataToExport, exportOpts)
-                  });
+                  try {
+                    const exportOpts = { ...options, qrSettings: styleOptions, onProgress: (p) => {
+                      setExportProgress(prev => {
+                        const errors = prev?.errors ? [...prev.errors] : []
+                        if (p && p.success === false) errors.push(p)
+                        return { ...prev, ...p, errors }
+                      })
+                    }}
+
+                    const mod = await import('./utils/exportUtils')
+                    await mod.processBatchExportStyled(dataToExport, exportOpts)
+                    setExportProgress(prev => ({ ...prev, done: true }))
+                  } catch (err) {
+                    console.error('Export failed', err)
+                    setExportProgress(prev => ({ ...prev, done: true, error: String(err) }))
+                  }
                 }}
               />
 
